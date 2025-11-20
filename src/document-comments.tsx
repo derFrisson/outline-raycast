@@ -47,11 +47,9 @@ export default function DocumentComments({
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const textContent = comment.data.content
-        .flatMap(
-          (block: { content?: { text?: string }[] }) => block.content || [],
-        )
-        .filter((item: { text?: string }) => item.text)
-        .map((item: { text?: string }) => item.text)
+        .flatMap((block: any) => block.content || [])
+        .filter((item: any) => item.text)
+        .map((item: any) => item.text)
         .join(" ");
       return textContent || "No text content";
     } catch {
