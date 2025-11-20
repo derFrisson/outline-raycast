@@ -153,32 +153,47 @@ export class OutlineApi {
   }
 
   async listDocuments(): Promise<OutlineDocument[]> {
-    const response = await this.request<{ data: OutlineDocument[] }>("documents.list", {
-      limit: 100,
-    });
+    const response = await this.request<{ data: OutlineDocument[] }>(
+      "documents.list",
+      {
+        limit: 100,
+      },
+    );
     return response.data;
   }
 
   async listCollections(): Promise<Collection[]> {
-    const response = await this.request<CollectionsResponse>("collections.list", {
-      limit: 100,
-    });
+    const response = await this.request<CollectionsResponse>(
+      "collections.list",
+      {
+        limit: 100,
+      },
+    );
     return response.data;
   }
 
-  async createDocument(title: string, collectionId: string, text?: string): Promise<OutlineDocument> {
-    const response = await this.request<CreateDocumentResponse>("documents.create", {
-      title,
-      collectionId,
-      text: text || "",
-      publish: true,
-    });
+  async createDocument(
+    title: string,
+    collectionId: string,
+    text?: string,
+  ): Promise<OutlineDocument> {
+    const response = await this.request<CreateDocumentResponse>(
+      "documents.create",
+      {
+        title,
+        collectionId,
+        text: text || "",
+        publish: true,
+      },
+    );
     return response.data;
   }
 
   // Starred documents
   async getStarredDocuments(): Promise<OutlineDocument[]> {
-    const response = await this.request<{ data: { document: OutlineDocument }[] }>("stars.list", {
+    const response = await this.request<{
+      data: { document: OutlineDocument }[];
+    }>("stars.list", {
       limit: 100,
     });
     return response.data.map((item) => item.document);
@@ -194,45 +209,68 @@ export class OutlineApi {
 
   // Recently viewed documents
   async getRecentDocuments(): Promise<OutlineDocument[]> {
-    const response = await this.request<{ data: OutlineDocument[] }>("documents.viewed", {
-      limit: 50,
-    });
+    const response = await this.request<{ data: OutlineDocument[] }>(
+      "documents.viewed",
+      {
+        limit: 50,
+      },
+    );
     return response.data;
   }
 
   // Collection documents
-  async getCollectionDocuments(collectionId: string): Promise<OutlineDocument[]> {
-    const response = await this.request<{ data: OutlineDocument[] }>("collections.documents", {
-      id: collectionId,
-      limit: 100,
-    });
+  async getCollectionDocuments(
+    collectionId: string,
+  ): Promise<OutlineDocument[]> {
+    const response = await this.request<{ data: OutlineDocument[] }>(
+      "collections.documents",
+      {
+        id: collectionId,
+        limit: 100,
+      },
+    );
     return response.data;
   }
 
   // Document info
   async getDocumentInfo(id: string): Promise<OutlineDocument> {
-    const response = await this.request<{ data: OutlineDocument }>("documents.info", {
-      id,
-    });
+    const response = await this.request<{ data: OutlineDocument }>(
+      "documents.info",
+      {
+        id,
+      },
+    );
     return response.data;
   }
 
   // Update document
-  async updateDocument(id: string, data: { title?: string; text?: string }): Promise<OutlineDocument> {
-    const response = await this.request<{ data: OutlineDocument }>("documents.update", {
-      id,
-      ...data,
-      publish: true,
-    });
+  async updateDocument(
+    id: string,
+    data: { title?: string; text?: string },
+  ): Promise<OutlineDocument> {
+    const response = await this.request<{ data: OutlineDocument }>(
+      "documents.update",
+      {
+        id,
+        ...data,
+        publish: true,
+      },
+    );
     return response.data;
   }
 
   // Move document
-  async moveDocument(id: string, collectionId: string): Promise<OutlineDocument> {
-    const response = await this.request<{ data: OutlineDocument }>("documents.move", {
-      id,
-      collectionId,
-    });
+  async moveDocument(
+    id: string,
+    collectionId: string,
+  ): Promise<OutlineDocument> {
+    const response = await this.request<{ data: OutlineDocument }>(
+      "documents.move",
+      {
+        id,
+        collectionId,
+      },
+    );
     return response.data;
   }
 
@@ -277,10 +315,13 @@ export class OutlineApi {
 
   // Revisions
   async listRevisions(documentId: string): Promise<Revision[]> {
-    const response = await this.request<{ data: Revision[] }>("revisions.list", {
-      documentId,
-      limit: 50,
-    });
+    const response = await this.request<{ data: Revision[] }>(
+      "revisions.list",
+      {
+        documentId,
+        limit: 50,
+      },
+    );
     return response.data;
   }
 
