@@ -7,9 +7,7 @@ export interface Authentication {
   };
 }
 
-const queryAuthentication = async (
-  instance: Instance,
-): Promise<Authentication | undefined> => {
+const queryAuthentication = async (instance: Instance): Promise<Authentication | undefined> => {
   try {
     const response = await fetch(`${instance.url}/api/auth.info`, {
       method: "POST",

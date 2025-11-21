@@ -8,12 +8,9 @@ import EmptyList from "./EmptyList";
 
 const DocumentSearch = ({ instances }: { instances: Instance[] }) => {
   const searchEverywhere = instances.length > 1;
-  const placeholder = searchEverywhere
-    ? "Search documents everywhere"
-    : `Search documents in ${instances[0].name}`;
+  const placeholder = searchEverywhere ? "Search documents everywhere" : `Search documents in ${instances[0].name}`;
 
-  const [matchedDocumentsPerInstance, setMatchedDocumentsPerInstance] =
-    useState<{ instance: Instance; docs: OutlineDocument[] }[]>([]);
+  const [matchedDocumentsPerInstance, setMatchedDocumentsPerInstance] = useState<{ instance: Instance; docs: OutlineDocument[] }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -34,10 +31,7 @@ const DocumentSearch = ({ instances }: { instances: Instance[] }) => {
             const docs = await api.searchDocuments(query);
             return { instance, docs };
           } catch (error) {
-            console.error(
-              `Failed to search documents in ${instance.name}:`,
-              error,
-            );
+            console.error(`Failed to search documents in ${instance.name}:`, error);
             await showToast({
               style: Toast.Style.Failure,
               title: `Failed to search in ${instance.name}`,
@@ -53,14 +47,8 @@ const DocumentSearch = ({ instances }: { instances: Instance[] }) => {
       if (filteredResults.length === 0) {
         await showToast(Toast.Style.Failure, "Found no matching documents!");
       } else {
-        const totalDocs = filteredResults.reduce(
-          (sum, { docs }) => sum + docs.length,
-          0,
-        );
-        await showToast(
-          Toast.Style.Success,
-          `Found ${totalDocs} matching documents!`,
-        );
+        const totalDocs = filteredResults.reduce((sum, { docs }) => sum + docs.length, 0);
+        await showToast(Toast.Style.Success, `Found ${totalDocs} matching documents!`);
       }
     } catch (error) {
       await showToast({
@@ -89,42 +77,24 @@ const DocumentSearch = ({ instances }: { instances: Instance[] }) => {
       searchBarPlaceholder={placeholder}
       throttle
     >
-      {matchedDocumentsPerInstance.length === 0 &&
-        !isLoading &&
-        query.length > 0 && (
-          <List.EmptyView
-            title="No matching documents"
-            description="Try a different search term"
-          />
-        )}
-      {matchedDocumentsPerInstance.length === 0 && query.length === 0 && (
-        <EmptyList />
+      {matchedDocumentsPerInstance.length === 0 && !isLoading && query.length > 0 && (
+        <List.EmptyView
+          title="No matching documents"
+          description="Try a different search term"
+        />
       )}
+      {matchedDocumentsPerInstance.length === 0 && query.length === 0 && <EmptyList />}
       {searchEverywhere &&
         matchedDocumentsPerInstance.map(({ instance, docs }) => (
-          <List.Section
-            key={instance.name}
-            subtitle={docs.length.toString()}
-            title={instance.name}
-          >
+          <List.Section key={instance.name} subtitle={docs.length.toString()} title={instance.name}>
             {docs.map((document) => (
-              <Document
-                document={document}
-                instance={instance}
-                key={document.id}
-                onRefresh={handleRefresh}
-              />
+              <Document document={document} instance={instance} key={document.id} onRefresh={handleRefresh} />
             ))}
           </List.Section>
         ))}
       {!searchEverywhere &&
         matchedDocumentsPerInstance[0]?.docs.map((document) => (
-          <Document
-            document={document}
-            instance={instances[0]}
-            key={document.id}
-            onRefresh={handleRefresh}
-          />
+          <Document document={document} instance={instances[0]} key={document.id} onRefresh={handleRefresh} />
         ))}
     </List>
   );

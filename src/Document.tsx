@@ -20,19 +20,13 @@ interface DocumentProps {
 }
 
 const Document = ({ document, instance, onRefresh }: DocumentProps) => {
-  const { data: collection } = useFetch<CollectionResponse, never, Collection>(
-    `${instance.url}/api/collections.info`,
-    {
-      body: JSON.stringify({
-        id: document.collectionId,
-      }),
-      headers: {
-        Authorization: `Bearer ${instance.apiKey}`,
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-    },
-  );
+  const { data: collection } = useFetch<CollectionResponse, never, Collection>(`${instance.url}/api/collections.info`, {
+    body: JSON.stringify({
+      id: document.collectionId,
+    }),
+    headers: { Authorization: `Bearer ${instance.apiKey}`, "Content-Type": "application/json" },
+    method: "POST",
+  });
 
   // Use emoji if available, otherwise use document icon
   const doc = document as OutlineDocument & { emoji?: string };
@@ -45,34 +39,16 @@ const Document = ({ document, instance, onRefresh }: DocumentProps) => {
           date: new Date(document.updatedAt),
         },
       ]}
-      actions={
-        <DocumentActions
-          document={document}
-          instance={instance}
-          onRefresh={onRefresh}
-        />
-      }
+      actions={<DocumentActions document={document} instance={instance} onRefresh={onRefresh} />}
       detail={
         <List.Item.Detail
           markdown={document.text || "No content"}
           metadata={
             <List.Item.Detail.Metadata>
-              {collection && (
-                <List.Item.Detail.Metadata.Label
-                  text={collection.name}
-                  title="Collection"
-                />
-              )}
+              {collection && <List.Item.Detail.Metadata.Label text={collection.name} title="Collection" />}
               {(() => {
-                const doc = document as OutlineDocument & {
-                  createdBy?: { name: string };
-                };
-                return doc.createdBy ? (
-                  <List.Item.Detail.Metadata.Label
-                    text={doc.createdBy.name}
-                    title="Author"
-                  />
-                ) : null;
+                const doc = document as OutlineDocument & { createdBy?: { name: string } };
+                return doc.createdBy ? <List.Item.Detail.Metadata.Label text={doc.createdBy.name} title="Author" /> : null;
               })()}
               <List.Item.Detail.Metadata.Label
                 text={new Date(document.createdAt).toLocaleDateString()}

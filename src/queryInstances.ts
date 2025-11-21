@@ -35,10 +35,7 @@ const queryInstances = (query: string, instances: Instance[]) =>
         url: `${instance.url}/doc/${match.document.id}`,
       })) as Document[];
     } catch (error) {
-      await showToast(
-        Toast.Style.Failure,
-        `Failed to fetch documents from ${instance.url}!`,
-      );
+      await showToast(Toast.Style.Failure, `Failed to fetch documents from ${instance.url}!`);
       console.error("Failed to fetch documents from", instance.url, error);
       return [];
     }

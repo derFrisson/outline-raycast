@@ -1,10 +1,4 @@
-import {
-  Action,
-  ActionPanel,
-  launchCommand,
-  LaunchType,
-  List,
-} from "@raycast/api";
+import { Action, ActionPanel, launchCommand, LaunchType, List } from "@raycast/api";
 import { useLocalStorage } from "@raycast/utils";
 import DocumentSearch from "./DocumentSearch";
 import { Instance } from "./queryInstances";
@@ -20,12 +14,7 @@ const Command = () => {
           <ActionPanel>
             <Action
               title="Manage Instances"
-              onAction={() =>
-                launchCommand({
-                  name: "manage-outline-instances",
-                  type: LaunchType.UserInitiated,
-                })
-              }
+              onAction={() => launchCommand({ name: "manage-outline-instances", type: LaunchType.UserInitiated })}
             />
           </ActionPanel>
         }
@@ -43,29 +32,18 @@ const Command = () => {
             <ActionPanel>
               <Action
                 title="Manage Instances"
-                onAction={() =>
-                  launchCommand({
-                    name: "manage-outline-instances",
-                    type: LaunchType.UserInitiated,
-                  })
-                }
+                onAction={() => launchCommand({ name: "manage-outline-instances", type: LaunchType.UserInitiated })}
               />
             </ActionPanel>
           }
           searchBarPlaceholder="Select an instance to search in or search everywhere"
         >
-          <List.Section
-            subtitle={instances.length.toString()}
-            title="Instances"
-          >
+          <List.Section subtitle={instances.length.toString()} title="Instances">
             {instances.map((instance, index) => (
               <List.Item
                 actions={
                   <ActionPanel>
-                    <Action.Push
-                      title="Search Documents"
-                      target={<DocumentSearch instances={[instance]} />}
-                    />
+                    <Action.Push title="Search Documents" target={<DocumentSearch instances={[instance]} />} />
                   </ActionPanel>
                 }
                 key={index}
@@ -77,10 +55,7 @@ const Command = () => {
             <List.Item
               actions={
                 <ActionPanel>
-                  <Action.Push
-                    title="Search Documents"
-                    target={<DocumentSearch instances={instances} />}
-                  />
+                  <Action.Push title="Search Documents" target={<DocumentSearch instances={instances} />} />
                 </ActionPanel>
               }
               title="Search everywhere"

@@ -5,10 +5,7 @@ import { Instance } from "./queryInstances";
 import queryAuthentication from "./queryAuthentication";
 import { useAsync } from "react-use";
 
-const useValidation = (
-  initialValue: string,
-  validate: (value: string) => Promise<string | undefined>,
-) => {
+const useValidation = (initialValue: string, validate: (value: string) => Promise<string | undefined>) => {
   const [value, setValue] = useState(initialValue);
   const [error, setError] = useState<string | undefined>();
 
@@ -39,8 +36,7 @@ const InstanceForm = ({
   onEdit?: () => Promise<void>;
 }) => {
   const { pop } = useNavigation();
-  const { value: instances, setValue: setInstances } =
-    useLocalStorage<Instance[]>("instances");
+  const { value: instances, setValue: setInstances } = useLocalStorage<Instance[]>("instances");
 
   const isEditing = instance !== undefined && onEdit !== undefined;
 
@@ -64,10 +60,7 @@ const InstanceForm = ({
       return "Please set a name!";
     } else if (name.trim().length === 0) {
       return "The name cannot be empty!";
-    } else if (
-      !isEditing &&
-      instances?.find((instance) => instance.name === name)
-    ) {
+    } else if (!isEditing && instances?.find((instance) => instance.name === name)) {
       return "This name is already in use!";
     }
 
@@ -133,19 +126,17 @@ const InstanceForm = ({
                 nextInstances = [...instances];
               }
 
-              setInstances(
-                nextInstances.sort((first, second) =>
-                  first.name.localeCompare(second.name),
-                ),
-              ).then(async () => {
-                pop();
+              setInstances(nextInstances.sort((first, second) => first.name.localeCompare(second.name))).then(
+                async () => {
+                  pop();
 
-                if (isEditing) {
-                  if (onEdit) await onEdit();
-                } else {
-                  if (onAdd) await onAdd();
-                }
-              });
+                  if (isEditing) {
+                    if (onEdit) await onEdit();
+                  } else {
+                    if (onAdd) await onAdd();
+                  }
+                },
+              );
             }}
             title={isEditing ? "Save" : "Add"}
           />

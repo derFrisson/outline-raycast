@@ -1,12 +1,5 @@
 import { Instance } from "./queryInstances";
-import {
-  Action,
-  ActionPanel,
-  Icon,
-  Keyboard,
-  List,
-  LocalStorage,
-} from "@raycast/api";
+import { Action, ActionPanel, Icon, Keyboard, List, LocalStorage } from "@raycast/api";
 import InstanceForm from "./InstanceForm";
 import queryAuthentication from "./queryAuthentication";
 import { useAsync } from "react-use";
@@ -43,9 +36,7 @@ const useInstances = () => {
 
     await LocalStorage.setItem(
       localStorageKey,
-      JSON.stringify(
-        instances.filter((existingInstance) => existingInstance !== instance),
-      ),
+      JSON.stringify(instances.filter((existingInstance) => existingInstance !== instance)),
     );
     await fetchInstances();
   };
@@ -71,17 +62,10 @@ const AddInstanceAction = ({
   fetchInstances: () => Promise<void>;
   shortcut?: Shortcut;
   title: string;
-}) => (
-  <Action.Push
-    {...{ shortcut, title }}
-    icon={Icon.Plus}
-    target={<InstanceForm onAdd={fetchInstances} />}
-  />
-);
+}) => <Action.Push {...{ shortcut, title }} icon={Icon.Plus} target={<InstanceForm onAdd={fetchInstances} />} />;
 
 const InstancesList = () => {
-  const { instances, isLoading, fetchInstances, removeInstance, setIsLoading } =
-    useInstances();
+  const { instances, isLoading, fetchInstances, removeInstance, setIsLoading } = useInstances();
 
   const InstancesActions = ({
     shortcut = undefined,
@@ -133,9 +117,7 @@ const InstancesList = () => {
             {...{ fetchInstances, instance }}
             key={index}
             remove={() => removeInstance(instance)}
-            instancesActions={
-              <InstancesActions shortcut={Shortcut.Common.New} title="Add" />
-            }
+            instancesActions={<InstancesActions shortcut={Shortcut.Common.New} title="Add" />}
           />
         ))}
       </List>
@@ -192,9 +174,7 @@ const InstanceItem = ({
             style={Action.Style.Destructive}
             title="Remove"
           />
-          <ActionPanel.Section title="Instances">
-            {instancesActions}
-          </ActionPanel.Section>
+          <ActionPanel.Section title="Instances">{instancesActions}</ActionPanel.Section>
         </ActionPanel>
       }
       icon={{ source: avatarURL ?? getAvatarIcon(instance.name) }}
