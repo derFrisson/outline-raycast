@@ -7,39 +7,62 @@ import {
   popToRoot,
   open,
 } from "@raycast/api";
-import React, { useState, useEffect } from "react";
-import { outlineApi, Collection } from "./api/outline";
+import { useLocalStorage } from "@raycast/utils";
+import { useState, useEffect } from "react";
+import { Instance } from "./queryInstances";
+import { OutlineApi, Collection } from "./api/OutlineApi";
+import EmptyList from "./EmptyList";
+import { List } from "@raycast/api";
 
 export default function Command() {
+  const { value: instances } = useLocalStorage<Instance[]>("instances");
+  const [selectedInstance, setSelectedInstance] = useState<Instance | null>(
+    null,
+  );
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchCollections() {
-      try {
-        const data = await outlineApi.listCollections();
-        setCollections(data);
-      } catch (error) {
-        showToast({
-          style: Toast.Style.Failure,
-          title: "Failed to load collections",
-          message: String(error),
-        });
-      } finally {
-        setIsLoading(false);
-      }
+    if (!instances || instances.length === 0) {
+      setIsLoading(false);
+      return;
     }
 
-    fetchCollections();
-  }, []);
+    // If only one instance, select it automatically and fetch collections
+    if (instances.length === 1) {
+      setSelectedInstance(instances[0]);
+      fetchCollections(instances[0]);
+    } else {
+      setIsLoading(false);
+    }
+  }, [instances]);
+
+  async function fetchCollections(instance: Instance) {
+    setIsLoading(true);
+    try {
+      const api = new OutlineApi(instance);
+      const data = await api.listCollections();
+      setCollections(data);
+    } catch (error) {
+      await showToast({
+        style: Toast.Style.Failure,
+        title: "Failed to load collections",
+        message: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   async function handleSubmit(values: {
     title: string;
     collectionId: string;
     text: string;
   }) {
+    if (!selectedInstance) return;
+
     if (!values.title || !values.collectionId) {
-      showToast({
+      await showToast({
         style: Toast.Style.Failure,
         title: "Missing required fields",
         message: "Please provide a title and select a collection",
@@ -48,37 +71,86 @@ export default function Command() {
     }
 
     try {
-      showToast({
+      await showToast({
         style: Toast.Style.Animated,
         title: "Creating document...",
       });
 
-      const document = await outlineApi.createDocument(
+      const api = new OutlineApi(selectedInstance);
+      const document = await api.createDocument(
         values.title,
         values.collectionId,
         values.text,
       );
 
-      showToast({
+      await showToast({
         style: Toast.Style.Success,
         title: "Document created",
         message: values.title,
       });
 
       // Open the document in browser
-      const url = outlineApi.getDocumentUrl(document);
+      const url = api.getDocumentUrl(document);
       await open(url);
 
       popToRoot();
     } catch (error) {
-      showToast({
+      await showToast({
         style: Toast.Style.Failure,
         title: "Failed to create document",
-        message: String(error),
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
 
+  if (!instances || instances.length === 0) {
+    return (
+      <List>
+        <EmptyList />
+      </List>
+    );
+  }
+
+  // If multiple instances and none selected, show instance selector
+  if (!selectedInstance && instances.length > 1) {
+    return (
+      <Form
+        isLoading={isLoading}
+        actions={
+          <ActionPanel>
+            <Action.SubmitForm
+              title="Continue"
+              onSubmit={(values: { instanceName: string }) => {
+                const instance = instances.find(
+                  (i) => i.name === values.instanceName,
+                );
+                if (instance) {
+                  setSelectedInstance(instance);
+                  fetchCollections(instance);
+                }
+              }}
+            />
+          </ActionPanel>
+        }
+      >
+        <Form.Dropdown
+          id="instanceName"
+          title="Instance"
+          placeholder="Select an instance"
+        >
+          {instances.map((instance) => (
+            <Form.Dropdown.Item
+              key={instance.name}
+              value={instance.name}
+              title={instance.name}
+            />
+          ))}
+        </Form.Dropdown>
+      </Form>
+    );
+  }
+
+  // Show the create document form
   return (
     <Form
       isLoading={isLoading}

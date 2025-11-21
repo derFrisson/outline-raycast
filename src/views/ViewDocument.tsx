@@ -7,26 +7,32 @@ import {
   Icon,
   useNavigation,
 } from "@raycast/api";
-import React, { useState, useEffect } from "react";
-import { outlineApi, OutlineDocument } from "./api/outline";
+import { useState, useEffect } from "react";
+import { OutlineApi, OutlineDocument } from "../api/OutlineApi";
+import { Instance } from "../queryInstances";
 
 interface ViewDocumentProps {
   documentId: string;
+  instance: Instance;
 }
 
-export default function ViewDocument({ documentId }: ViewDocumentProps) {
+export default function ViewDocument({
+  documentId,
+  instance,
+}: ViewDocumentProps) {
   const [document, setDocument] = useState<OutlineDocument | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { pop } = useNavigation();
+  const api = new OutlineApi(instance);
 
   useEffect(() => {
     async function fetchDocument() {
       setIsLoading(true);
       try {
-        const doc = await outlineApi.getDocumentInfo(documentId);
+        const doc = await api.getDocumentInfo(documentId);
         setDocument(doc);
       } catch (error) {
-        showToast({
+        await showToast({
           style: Toast.Style.Failure,
           title: "Failed to load document",
           message: error instanceof Error ? error.message : String(error),
@@ -43,14 +49,14 @@ export default function ViewDocument({ documentId }: ViewDocumentProps) {
     if (!document) return;
 
     try {
-      const share = await outlineApi.createShare(document.id);
+      const share = await api.createShare(document.id);
       await showToast({
         style: Toast.Style.Success,
         title: "Share link created",
         message: share.url,
       });
     } catch (error) {
-      showToast({
+      await showToast({
         style: Toast.Style.Failure,
         title: "Failed to create share link",
         message: error instanceof Error ? error.message : String(error),
@@ -62,10 +68,13 @@ export default function ViewDocument({ documentId }: ViewDocumentProps) {
     if (!document) return;
 
     try {
-      await outlineApi.starDocument(document.id);
-      showToast({ style: Toast.Style.Success, title: "Document starred" });
+      await api.starDocument(document.id);
+      await showToast({
+        style: Toast.Style.Success,
+        title: "Document starred",
+      });
     } catch (error) {
-      showToast({
+      await showToast({
         style: Toast.Style.Failure,
         title: "Failed to star",
         message: error instanceof Error ? error.message : String(error),
@@ -103,10 +112,10 @@ export default function ViewDocument({ documentId }: ViewDocumentProps) {
       }
       actions={
         <ActionPanel>
-          <Action.OpenInBrowser url={outlineApi.getDocumentUrl(document)} />
+          <Action.OpenInBrowser url={api.getDocumentUrl(document)} />
           <Action.CopyToClipboard
             title="Copy URL"
-            content={outlineApi.getDocumentUrl(document)}
+            content={api.getDocumentUrl(document)}
             shortcut={{ modifiers: ["cmd"], key: "c" }}
           />
           <Action

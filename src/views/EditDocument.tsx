@@ -6,26 +6,34 @@ import {
   Toast,
   useNavigation,
 } from "@raycast/api";
-import React, { useState, useEffect } from "react";
-import { outlineApi, OutlineDocument } from "./api/outline";
+import { useState, useEffect } from "react";
+import { OutlineApi, OutlineDocument } from "../api/OutlineApi";
+import { Instance } from "../queryInstances";
 
 interface EditDocumentProps {
   documentId: string;
+  instance: Instance;
+  onSave?: () => void;
 }
 
-export default function EditDocument({ documentId }: EditDocumentProps) {
+export default function EditDocument({
+  documentId,
+  instance,
+  onSave,
+}: EditDocumentProps) {
   const [document, setDocument] = useState<OutlineDocument | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { pop } = useNavigation();
+  const api = new OutlineApi(instance);
 
   useEffect(() => {
     async function fetchDocument() {
       setIsLoading(true);
       try {
-        const doc = await outlineApi.getDocumentInfo(documentId);
+        const doc = await api.getDocumentInfo(documentId);
         setDocument(doc);
       } catch (error) {
-        showToast({
+        await showToast({
           style: Toast.Style.Failure,
           title: "Failed to load document",
           message: error instanceof Error ? error.message : String(error),
@@ -40,24 +48,25 @@ export default function EditDocument({ documentId }: EditDocumentProps) {
 
   async function handleSubmit(values: { title: string; text: string }) {
     try {
-      showToast({
+      await showToast({
         style: Toast.Style.Animated,
         title: "Updating document...",
       });
 
-      await outlineApi.updateDocument(documentId, {
+      await api.updateDocument(documentId, {
         title: values.title,
         text: values.text,
       });
 
-      showToast({
+      await showToast({
         style: Toast.Style.Success,
         title: "Document updated",
       });
 
+      if (onSave) onSave();
       pop();
     } catch (error) {
-      showToast({
+      await showToast({
         style: Toast.Style.Failure,
         title: "Failed to update document",
         message: error instanceof Error ? error.message : String(error),

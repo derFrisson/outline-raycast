@@ -1,10 +1,5 @@
-import { getPreferenceValues } from "@raycast/api";
 import fetch from "node-fetch";
-
-interface Preferences {
-  apiKey: string;
-  instanceUrl?: string;
-}
+import { Instance } from "../queryInstances";
 
 export interface OutlineDocument {
   id: string;
@@ -95,27 +90,23 @@ interface CreateDocumentResponse {
   data: OutlineDocument;
 }
 
+/**
+ * Centralized API client for Outline
+ * Works with the Instance interface from the base extension
+ */
 export class OutlineApi {
-  private apiKey: string;
-  private baseUrl: string;
+  private instance: Instance;
 
-  constructor() {
-    const preferences = getPreferenceValues<Preferences>();
-    this.apiKey = preferences.apiKey;
-    this.baseUrl = preferences.instanceUrl || "https://app.getoutline.com";
-
-    // Ensure no trailing slash
-    if (this.baseUrl.endsWith("/")) {
-      this.baseUrl = this.baseUrl.slice(0, -1);
-    }
+  constructor(instance: Instance) {
+    this.instance = instance;
   }
 
   private async request<T>(method: string, body: object): Promise<T> {
-    const response = await fetch(`${this.baseUrl}/api/${method}`, {
+    const response = await fetch(`${this.instance.url}/api/${method}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.instance.apiKey}`,
       },
       body: JSON.stringify(body),
     });
@@ -136,11 +127,11 @@ export class OutlineApi {
         return doc.url;
       }
       // Otherwise prepend base URL
-      return `${this.baseUrl}${doc.url}`;
+      return `${this.instance.url}${doc.url}`;
     }
 
     // Fallback: construct URL from id if url field is missing
-    return `${this.baseUrl}/doc/${doc.id}`;
+    return `${this.instance.url}/doc/${doc.id}`;
   }
 
   async searchDocuments(query: string): Promise<OutlineDocument[]> {
@@ -332,5 +323,3 @@ export class OutlineApi {
     return response.data;
   }
 }
-
-export const outlineApi = new OutlineApi();

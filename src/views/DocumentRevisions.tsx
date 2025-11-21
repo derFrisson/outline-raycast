@@ -8,30 +8,34 @@ import {
   Icon,
   useNavigation,
 } from "@raycast/api";
-import React, { useState, useEffect } from "react";
-import { outlineApi, Revision } from "./api/outline";
+import { useState, useEffect } from "react";
+import { OutlineApi, Revision } from "../api/OutlineApi";
+import { Instance } from "../queryInstances";
 
 interface DocumentRevisionsProps {
   documentId: string;
   documentTitle: string;
+  instance: Instance;
 }
 
 export default function DocumentRevisions({
   documentId,
   documentTitle,
+  instance,
 }: DocumentRevisionsProps) {
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { push } = useNavigation();
+  const api = new OutlineApi(instance);
 
   useEffect(() => {
     async function fetchRevisions() {
       setIsLoading(true);
       try {
-        const data = await outlineApi.listRevisions(documentId);
+        const data = await api.listRevisions(documentId);
         setRevisions(data);
       } catch (error) {
-        showToast({
+        await showToast({
           style: Toast.Style.Failure,
           title: "Failed to load revisions",
           message: error instanceof Error ? error.message : String(error),

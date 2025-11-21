@@ -1,53 +1,65 @@
-import {
-  ActionPanel,
-  Action,
-  List,
-  showToast,
-  Toast,
-  Icon,
-} from "@raycast/api";
-import React, { useState, useEffect } from "react";
-import { outlineApi, OutlineDocument } from "./api/outline";
+import { List, showToast, Toast } from "@raycast/api";
+import { useLocalStorage } from "@raycast/utils";
+import { useState, useEffect } from "react";
+import { Instance } from "./queryInstances";
+import { OutlineApi, OutlineDocument } from "./api/OutlineApi";
+import DocumentActions from "./components/DocumentActions";
+import EmptyList from "./EmptyList";
 
 export default function Command() {
-  const [documents, setDocuments] = useState<OutlineDocument[]>([]);
+  const { value: instances } = useLocalStorage<Instance[]>("instances");
+  const [documents, setDocuments] = useState<
+    { instance: Instance; docs: OutlineDocument[] }[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchStarredDocuments() {
-      setIsLoading(true);
-      try {
-        const docs = await outlineApi.getStarredDocuments();
-        setDocuments(docs);
-      } catch (error) {
-        showToast({
-          style: Toast.Style.Failure,
-          title: "Failed to load starred documents",
-          message: error instanceof Error ? error.message : String(error),
-        });
-      } finally {
-        setIsLoading(false);
-      }
+    fetchStarredDocuments();
+  }, [instances]);
+
+  async function fetchStarredDocuments() {
+    if (!instances || instances.length === 0) {
+      setIsLoading(false);
+      return;
     }
 
-    fetchStarredDocuments();
-  }, []);
-
-  async function handleUnstar(doc: OutlineDocument) {
+    setIsLoading(true);
     try {
-      await outlineApi.unstarDocument(doc.id);
-      setDocuments(documents.filter((d) => d.id !== doc.id));
-      showToast({
-        style: Toast.Style.Success,
-        title: "Document unstarred",
-      });
+      const results = await Promise.all(
+        instances.map(async (instance) => {
+          try {
+            const api = new OutlineApi(instance);
+            const docs = await api.getStarredDocuments();
+            return { instance, docs };
+          } catch (error) {
+            console.error(
+              `Failed to fetch starred documents from ${instance.name}:`,
+              error,
+            );
+            return { instance, docs: [] };
+          }
+        }),
+      );
+
+      // Filter out instances with no starred documents
+      setDocuments(results.filter((result) => result.docs.length > 0));
     } catch (error) {
-      showToast({
+      await showToast({
         style: Toast.Style.Failure,
-        title: "Failed to unstar document",
+        title: "Failed to load starred documents",
         message: error instanceof Error ? error.message : String(error),
       });
+    } finally {
+      setIsLoading(false);
     }
+  }
+
+  if (!instances || instances.length === 0) {
+    return (
+      <List>
+        <EmptyList />
+      </List>
+    );
   }
 
   return (
@@ -55,32 +67,37 @@ export default function Command() {
       isLoading={isLoading}
       searchBarPlaceholder="Search starred documents..."
     >
-      {documents.map((doc) => (
-        <List.Item
-          key={doc.id}
-          title={doc.title}
-          subtitle={
-            (doc.text || "").substring(0, 50) +
-            (doc.text && doc.text.length > 50 ? "..." : "")
-          }
-          icon={Icon.Star}
-          actions={
-            <ActionPanel>
-              <Action.OpenInBrowser url={outlineApi.getDocumentUrl(doc)} />
-              <Action.CopyToClipboard
-                title="Copy URL"
-                content={outlineApi.getDocumentUrl(doc)}
-                shortcut={{ modifiers: ["cmd"], key: "c" }}
-              />
-              <Action
-                title="Unstar Document"
-                icon={Icon.StarDisabled}
-                onAction={() => handleUnstar(doc)}
-                shortcut={{ modifiers: ["cmd"], key: "u" }}
-              />
-            </ActionPanel>
-          }
+      {documents.length === 0 && !isLoading && (
+        <List.EmptyView
+          title="No starred documents"
+          description="Star documents to see them here"
         />
+      )}
+      {documents.map(({ instance, docs }) => (
+        <List.Section
+          key={instance.name}
+          title={instance.name}
+          subtitle={docs.length.toString()}
+        >
+          {docs.map((doc) => (
+            <List.Item
+              key={doc.id}
+              title={doc.title}
+              subtitle={
+                (doc.text || "").substring(0, 50) +
+                (doc.text && doc.text.length > 50 ? "..." : "")
+              }
+              accessories={[{ date: new Date(doc.updatedAt) }]}
+              actions={
+                <DocumentActions
+                  document={doc}
+                  instance={instance}
+                  onRefresh={fetchStarredDocuments}
+                />
+              }
+            />
+          ))}
+        </List.Section>
       ))}
     </List>
   );

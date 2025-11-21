@@ -8,12 +8,14 @@ import {
   Icon,
   useNavigation,
 } from "@raycast/api";
-import React, { useState, useEffect } from "react";
-import { outlineApi, Comment } from "./api/outline";
+import { useState, useEffect } from "react";
+import { OutlineApi, Comment } from "../api/OutlineApi";
+import { Instance } from "../queryInstances";
 
 interface DocumentCommentsProps {
   documentId: string;
   documentTitle: string;
+  instance: Instance;
 }
 
 interface ContentBlock {
@@ -23,9 +25,11 @@ interface ContentBlock {
 export default function DocumentComments({
   documentId,
   documentTitle,
+  instance,
 }: DocumentCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const api = new OutlineApi(instance);
 
   useEffect(() => {
     fetchComments();
@@ -34,10 +38,10 @@ export default function DocumentComments({
   async function fetchComments() {
     setIsLoading(true);
     try {
-      const data = await outlineApi.listComments(documentId);
+      const data = await api.listComments(documentId);
       setComments(data);
     } catch (error) {
-      showToast({
+      await showToast({
         style: Toast.Style.Failure,
         title: "Failed to load comments",
         message: error instanceof Error ? error.message : String(error),
@@ -49,7 +53,6 @@ export default function DocumentComments({
 
   function getCommentText(comment: Comment): string {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const textContent = (comment.data.content as ContentBlock[])
         .flatMap((block) => block.content || [])
         .filter((item) => item.text)
@@ -73,6 +76,7 @@ export default function DocumentComments({
               target={
                 <AddCommentForm
                   documentId={documentId}
+                  instance={instance}
                   onCommentAdded={fetchComments}
                 />
               }
@@ -95,15 +99,21 @@ export default function DocumentComments({
 
 interface AddCommentFormProps {
   documentId: string;
+  instance: Instance;
   onCommentAdded: () => void;
 }
 
-function AddCommentForm({ documentId, onCommentAdded }: AddCommentFormProps) {
+function AddCommentForm({
+  documentId,
+  instance,
+  onCommentAdded,
+}: AddCommentFormProps) {
   const { pop } = useNavigation();
+  const api = new OutlineApi(instance);
 
   async function handleSubmit(values: { text: string }) {
     if (!values.text) {
-      showToast({
+      await showToast({
         style: Toast.Style.Failure,
         title: "Comment text is required",
       });
@@ -111,15 +121,15 @@ function AddCommentForm({ documentId, onCommentAdded }: AddCommentFormProps) {
     }
 
     try {
-      await outlineApi.createComment(documentId, values.text);
-      showToast({
+      await api.createComment(documentId, values.text);
+      await showToast({
         style: Toast.Style.Success,
         title: "Comment added",
       });
       onCommentAdded();
       pop();
     } catch (error) {
-      showToast({
+      await showToast({
         style: Toast.Style.Failure,
         title: "Failed to add comment",
         message: error instanceof Error ? error.message : String(error),
