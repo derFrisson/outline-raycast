@@ -48,7 +48,9 @@ const Document = ({ document, instance, onRefresh }: DocumentProps) => {
               {collection && <List.Item.Detail.Metadata.Label text={collection.name} title="Collection" />}
               {(() => {
                 const doc = document as OutlineDocument & { createdBy?: { name: string } };
-                return doc.createdBy ? <List.Item.Detail.Metadata.Label text={doc.createdBy.name} title="Author" /> : null;
+                return doc.createdBy ? (
+                  <List.Item.Detail.Metadata.Label text={doc.createdBy.name} title="Author" />
+                ) : null;
               })()}
               <List.Item.Detail.Metadata.Label
                 text={new Date(document.createdAt).toLocaleDateString()}

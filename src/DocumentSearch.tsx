@@ -10,7 +10,9 @@ const DocumentSearch = ({ instances }: { instances: Instance[] }) => {
   const searchEverywhere = instances.length > 1;
   const placeholder = searchEverywhere ? "Search documents everywhere" : `Search documents in ${instances[0].name}`;
 
-  const [matchedDocumentsPerInstance, setMatchedDocumentsPerInstance] = useState<{ instance: Instance; docs: OutlineDocument[] }[]>([]);
+  const [matchedDocumentsPerInstance, setMatchedDocumentsPerInstance] = useState<
+    { instance: Instance; docs: OutlineDocument[] }[]
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -78,10 +80,7 @@ const DocumentSearch = ({ instances }: { instances: Instance[] }) => {
       throttle
     >
       {matchedDocumentsPerInstance.length === 0 && !isLoading && query.length > 0 && (
-        <List.EmptyView
-          title="No matching documents"
-          description="Try a different search term"
-        />
+        <List.EmptyView title="No matching documents" description="Try a different search term" />
       )}
       {matchedDocumentsPerInstance.length === 0 && query.length === 0 && <EmptyList />}
       {searchEverywhere &&
